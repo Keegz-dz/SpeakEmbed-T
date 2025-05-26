@@ -1,16 +1,18 @@
+"""
+Plotting utilities for alignments and spectrograms in TTS models.
+"""
+
 import numpy as np
 
 
 def split_title_line(title_text, max_words=5):
-	"""
-	A function that splits any string based on specific character
-	(returning it with the string), with maximum number of words on it
-	"""
+	"""Split a string into lines with a maximum number of words per line."""
 	seq = title_text.split()
 	return "\n".join([" ".join(seq[i:i + max_words]) for i in range(0, len(seq), max_words)])
 
 
 def plot_alignment(alignment, path, title=None, split_title=False, max_len=None):
+	"""Plot and save an alignment matrix as an image file."""
 	import matplotlib
 	matplotlib.use("Agg")
 	import matplotlib.pyplot as plt
@@ -41,6 +43,7 @@ def plot_alignment(alignment, path, title=None, split_title=False, max_len=None)
 
 
 def plot_spectrogram(pred_spectrogram, path, title=None, split_title=False, target_spectrogram=None, max_len=None, auto_aspect=False):
+	"""Plot and save a spectrogram (and optionally a target spectrogram) as an image file."""
 	import matplotlib
 	matplotlib.use("Agg")
 	import matplotlib.pyplot as plt

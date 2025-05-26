@@ -1,3 +1,6 @@
+"""Audio synthesizer utilities for waveform and spectrogram processing in TTS pipelines.
+"""
+
 import librosa
 import librosa.filters
 import numpy as np
@@ -7,41 +10,46 @@ import soundfile as sf
 
 
 def load_wav(path, sr):
+    """Load a waveform from a file using librosa."""
     return librosa.core.load(path, sr=sr)[0]
 
 def save_wav(wav, path, sr):
+    """Save a waveform to a file using scipy.io.wavfile."""
     wav *= 32767 / max(0.01, np.max(np.abs(wav)))
-    #proposed by @dsmiller
+    # proposed by @dsmiller
     wavfile.write(path, sr, wav.astype(np.int16))
 
 def save_wavenet_wav(wav, path, sr):
+    """Save a waveform to a file using soundfile (float32)."""
     sf.write(path, wav.astype(np.float32), sr)
 
 def preemphasis(wav, k, preemphasize=True):
+    """Apply pre-emphasis filter to a waveform."""
     if preemphasize:
         return signal.lfilter([1, -k], [1], wav)
     return wav
 
 def inv_preemphasis(wav, k, inv_preemphasize=True):
+    """Apply inverse pre-emphasis filter to a waveform."""
     if inv_preemphasize:
         return signal.lfilter([1], [1, -k], wav)
     return wav
 
-#From https://github.com/r9y9/wavenet_vocoder/blob/master/audio.py
+# From https://github.com/r9y9/wavenet_vocoder/blob/master/audio.py
 def start_and_end_indices(quantized, silence_threshold=2):
+    """Find start and end indices of non-silent region in a quantized waveform."""
     for start in range(quantized.size):
         if abs(quantized[start] - 127) > silence_threshold:
             break
     for end in range(quantized.size - 1, 1, -1):
         if abs(quantized[end] - 127) > silence_threshold:
             break
-    
     assert abs(quantized[start] - 127) > silence_threshold
     assert abs(quantized[end] - 127) > silence_threshold
-    
     return start, end
 
 def get_hop_size(hparams):
+    """Get hop size from hparams, computing from frame_shift_ms if needed."""
     hop_size = hparams.hop_size
     if hop_size is None:
         assert hparams.frame_shift_ms is not None
@@ -49,30 +57,28 @@ def get_hop_size(hparams):
     return hop_size
 
 def linearspectrogram(wav, hparams):
+    """Compute a linear spectrogram from a waveform."""
     D = _stft(preemphasis(wav, hparams.preemphasis, hparams.preemphasize), hparams)
     S = _amp_to_db(np.abs(D), hparams) - hparams.ref_level_db
-    
     if hparams.signal_normalization:
         return _normalize(S, hparams)
     return S
 
 def melspectrogram(wav, hparams):
+    """Compute a mel spectrogram from a waveform."""
     D = _stft(preemphasis(wav, hparams.preemphasis, hparams.preemphasize), hparams)
     S = _amp_to_db(_linear_to_mel(np.abs(D), hparams), hparams) - hparams.ref_level_db
-    
     if hparams.signal_normalization:
         return _normalize(S, hparams)
     return S
 
 def inv_linear_spectrogram(linear_spectrogram, hparams):
-    """Converts linear spectrogram to waveform using librosa"""
+    """Converts linear spectrogram to waveform using librosa."""
     if hparams.signal_normalization:
         D = _denormalize(linear_spectrogram, hparams)
     else:
         D = linear_spectrogram
-    
-    S = _db_to_amp(D + hparams.ref_level_db) #Convert back to linear
-    
+    S = _db_to_amp(D + hparams.ref_level_db) # Convert back to linear
     if hparams.use_lws:
         processor = _lws_processor(hparams)
         D = processor.run_lws(S.astype(np.float64).T ** hparams.power)
@@ -82,14 +88,12 @@ def inv_linear_spectrogram(linear_spectrogram, hparams):
         return inv_preemphasis(_griffin_lim(S ** hparams.power, hparams), hparams.preemphasis, hparams.preemphasize)
 
 def inv_mel_spectrogram(mel_spectrogram, hparams):
-    """Converts mel spectrogram to waveform using librosa"""
+    """Converts mel spectrogram to waveform using librosa."""
     if hparams.signal_normalization:
         D = _denormalize(mel_spectrogram, hparams)
     else:
         D = mel_spectrogram
-    
     S = _mel_to_linear(_db_to_amp(D + hparams.ref_level_db), hparams)  # Convert back to linear
-    
     if hparams.use_lws:
         processor = _lws_processor(hparams)
         D = processor.run_lws(S.astype(np.float64).T ** hparams.power)
@@ -99,13 +103,12 @@ def inv_mel_spectrogram(mel_spectrogram, hparams):
         return inv_preemphasis(_griffin_lim(S ** hparams.power, hparams), hparams.preemphasis, hparams.preemphasize)
 
 def _lws_processor(hparams):
+    """Create an LWS processor for STFT/ISTFT."""
     import lws
     return lws.lws(hparams.n_fft, get_hop_size(hparams), fftsize=hparams.win_size, mode="speech")
 
 def _griffin_lim(S, hparams):
-    """librosa implementation of Griffin-Lim
-    Based on https://github.com/librosa/librosa/issues/434
-    """
+    """librosa implementation of Griffin-Lim algorithm."""
     angles = np.exp(2j * np.pi * np.random.rand(*S.shape))
     S_complex = np.abs(S).astype(complex)
     y = _istft(S_complex * angles, hparams)
@@ -115,19 +118,20 @@ def _griffin_lim(S, hparams):
     return y
 
 def _stft(y, hparams):
+    """Short-time Fourier transform using librosa or LWS."""
     if hparams.use_lws:
         return _lws_processor(hparams).stft(y).T
     else:
         return librosa.stft(y=y, n_fft=hparams.n_fft, hop_length=get_hop_size(hparams), win_length=hparams.win_size)
 
 def _istft(y, hparams):
+    """Inverse short-time Fourier transform using librosa."""
     return librosa.istft(y, hop_length=get_hop_size(hparams), win_length=hparams.win_size)
 
 ##########################################################
-#Those are only correct when using lws!!! (This was messing with Wavenet quality for a long time!)
+# The following are only correct when using lws!!!
 def num_frames(length, fsize, fshift):
-    """Compute number of time frames of spectrogram
-    """
+    """Compute number of time frames of spectrogram."""
     pad = (fsize - fshift)
     if length % fshift == 0:
         M = (length + pad * 2 - fsize) // fshift + 1
@@ -135,18 +139,17 @@ def num_frames(length, fsize, fshift):
         M = (length + pad * 2 - fsize) // fshift + 2
     return M
 
-
 def pad_lr(x, fsize, fshift):
-    """Compute left and right padding
-    """
+    """Compute left and right padding."""
     M = num_frames(len(x), fsize, fshift)
     pad = (fsize - fshift)
     T = len(x) + 2 * pad
     r = (M - 1) * fshift + fsize - T
     return pad, pad + r
 ##########################################################
-#Librosa correct padding
+# Librosa correct padding
 def librosa_pad_lr(x, fsize, fshift):
+    """Compute right padding for librosa STFT."""
     return 0, (x.shape[0] // fshift + 1) * fshift - x.shape[0]
 
 # Conversions
@@ -154,18 +157,21 @@ _mel_basis = None
 _inv_mel_basis = None
 
 def _linear_to_mel(spectogram, hparams):
+    """Convert a linear spectrogram to a mel spectrogram."""
     global _mel_basis
     if _mel_basis is None:
         _mel_basis = _build_mel_basis(hparams)
     return np.dot(_mel_basis, spectogram)
 
 def _mel_to_linear(mel_spectrogram, hparams):
+    """Convert a mel spectrogram to a linear spectrogram."""
     global _inv_mel_basis
     if _inv_mel_basis is None:
         _inv_mel_basis = np.linalg.pinv(_build_mel_basis(hparams))
     return np.maximum(1e-10, np.dot(_inv_mel_basis, mel_spectrogram))
 
 def _build_mel_basis(hparams):
+    """Build a mel filterbank matrix."""
     assert hparams.fmax <= hparams.sample_rate // 2
     return librosa.filters.mel(sr=hparams.sample_rate,
                            n_fft=hparams.n_fft,
@@ -174,20 +180,22 @@ def _build_mel_basis(hparams):
                            fmax=hparams.fmax)
 
 def _amp_to_db(x, hparams):
+    """Convert amplitude to decibels."""
     min_level = np.exp(hparams.min_level_db / 20 * np.log(10))
     return 20 * np.log10(np.maximum(min_level, x))
 
 def _db_to_amp(x):
+    """Convert decibels to amplitude."""
     return np.power(10.0, (x) * 0.05)
 
 def _normalize(S, hparams):
+    """Normalize a spectrogram to the range specified by hparams."""
     if hparams.allow_clipping_in_normalization:
         if hparams.symmetric_mels:
             return np.clip((2 * hparams.max_abs_value) * ((S - hparams.min_level_db) / (-hparams.min_level_db)) - hparams.max_abs_value,
                            -hparams.max_abs_value, hparams.max_abs_value)
         else:
             return np.clip(hparams.max_abs_value * ((S - hparams.min_level_db) / (-hparams.min_level_db)), 0, hparams.max_abs_value)
-    
     assert S.max() <= 0 and S.min() - hparams.min_level_db >= 0
     if hparams.symmetric_mels:
         return (2 * hparams.max_abs_value) * ((S - hparams.min_level_db) / (-hparams.min_level_db)) - hparams.max_abs_value
@@ -195,6 +203,7 @@ def _normalize(S, hparams):
         return hparams.max_abs_value * ((S - hparams.min_level_db) / (-hparams.min_level_db))
 
 def _denormalize(D, hparams):
+    """Denormalize a spectrogram from the range specified by hparams."""
     if hparams.allow_clipping_in_normalization:
         if hparams.symmetric_mels:
             return (((np.clip(D, -hparams.max_abs_value,
@@ -202,7 +211,6 @@ def _denormalize(D, hparams):
                     + hparams.min_level_db)
         else:
             return ((np.clip(D, 0, hparams.max_abs_value) * -hparams.min_level_db / hparams.max_abs_value) + hparams.min_level_db)
-    
     if hparams.symmetric_mels:
         return (((D + hparams.max_abs_value) * -hparams.min_level_db / (2 * hparams.max_abs_value)) + hparams.min_level_db)
     else:

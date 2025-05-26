@@ -1,3 +1,7 @@
+"""
+Profiler utility for measuring and summarizing execution time of code blocks/functions.
+"""
+
 from time import perf_counter as timer
 from collections import OrderedDict
 import numpy as np
@@ -5,12 +9,23 @@ import numpy as np
 
 class Profiler:
     def __init__(self, summarize_every=5, disabled=False):
+        """
+        Initialize the Profiler.
+        Args:
+            summarize_every (int): Number of ticks before summarizing.
+            disabled (bool): If True, disables profiling.
+        """
         self.last_tick = timer()
         self.logs = OrderedDict()
         self.summarize_every = summarize_every
         self.disabled = disabled
     
     def tick(self, name):
+        """
+        Record the time since the last tick for a named code section.
+        Args:
+            name (str): Name of the code section/function.
+        """
         if self.disabled:
             return
         
@@ -25,13 +40,22 @@ class Profiler:
         self.reset_timer()
         
     def purge_logs(self):
+        """
+        Clear all logs for all code sections.
+        """
         for name in self.logs:
             self.logs[name].clear()
     
     def reset_timer(self):
+        """
+        Reset the timer to the current time.
+        """
         self.last_tick = timer()
     
     def summarize(self):
+        """
+        Print a summary of the average and stddev of execution times for each code section.
+        """
         n = max(map(len, self.logs.values()))
         assert n == self.summarize_every
         print("\nAverage execution time over %d steps:" % n)

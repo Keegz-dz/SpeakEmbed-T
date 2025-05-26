@@ -1,3 +1,8 @@
+"""CMU Pronouncing Dictionary wrapper and ARPAbet symbol utilities.
+
+Adapted from the Tacotron project by Keith Ito and contributors.
+"""
+
 import re
 
 valid_symbols = [
@@ -16,6 +21,12 @@ _valid_symbol_set = set(valid_symbols)
 class CMUDict:
   """Thin wrapper around CMUDict data. http://www.speech.cs.cmu.edu/cgi-bin/cmudict"""
   def __init__(self, file_or_path, keep_ambiguous=True):
+    """
+    Initialize the CMUDict wrapper.
+    Args:
+      file_or_path (str or file-like): Path to CMUDict file or file object.
+      keep_ambiguous (bool): If False, only keep words with a single pronunciation.
+    """
     if isinstance(file_or_path, str):
       with open(file_or_path, encoding="latin-1") as f:
         entries = _parse_cmudict(f)
@@ -27,6 +38,7 @@ class CMUDict:
 
 
   def __len__(self):
+    """Return the number of entries in the dictionary."""
     return len(self._entries)
 
 
@@ -40,6 +52,7 @@ _alt_re = re.compile(r"\([0-9]+\)")
 
 
 def _parse_cmudict(file):
+  """Parse a CMUDict file into a dictionary mapping words to pronunciations."""
   cmudict = {}
   for line in file:
     if len(line) and (line[0] >= "A" and line[0] <= "Z" or line[0] == "'"):
@@ -55,6 +68,7 @@ def _parse_cmudict(file):
 
 
 def _get_pronunciation(s):
+  """Validate and return a pronunciation string if all symbols are valid."""
   parts = s.strip().split(" ")
   for part in parts:
     if part not in _valid_symbol_set:

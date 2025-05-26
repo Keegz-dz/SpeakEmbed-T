@@ -1,4 +1,8 @@
 """
+Text cleaning and normalization utilities for TTS preprocessing.
+
+Adapted from the Tacotron project by Keith Ito and contributors.
+
 Cleaners are transformations that run over the input text at both training and eval time.
 
 Cleaners can be selected by passing a comma-delimited list of cleaner names as the "cleaners"
@@ -41,25 +45,29 @@ _abbreviations = [(re.compile("\\b%s\\." % x[0], re.IGNORECASE), x[1]) for x in 
 
 
 def expand_abbreviations(text):
+    """Expand common English abbreviations in the text."""
     for regex, replacement in _abbreviations:
         text = re.sub(regex, replacement, text)
     return text
 
 
 def expand_numbers(text):
+    """Expand numbers in the text to their spoken forms."""
     return normalize_numbers(text)
 
 
 def lowercase(text):
-    """lowercase input tokens."""
+    """Lowercase input tokens."""
     return text.lower()
 
 
 def collapse_whitespace(text):
+    """Collapse multiple whitespaces into a single space."""
     return re.sub(_whitespace_re, " ", text)
 
 
 def convert_to_ascii(text):
+    """Transliterate text to ASCII using unidecode."""
     return unidecode(text)
 
 

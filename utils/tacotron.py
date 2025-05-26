@@ -1,3 +1,12 @@
+"""
+Tacotron model components for sequence-to-sequence text-to-speech synthesis.
+
+This file implements the core neural network modules for Tacotron, including the encoder, decoder, attention, and post-processing networks.
+
+Adapted from the original Tacotron and Tacotron 2 implementations by NVIDIA, Keith Ito, and contributors:
+- https://github.com/keithito/tacotron
+- https://github.com/NVIDIA/tacotron2
+"""
 import os
 import numpy as np
 import torch

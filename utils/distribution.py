@@ -1,11 +1,14 @@
+"""
+Distribution and loss utilities for TTS models (e.g., discretized mixture of logistics).
+"""
+
 import numpy as np
 import torch
 import torch.nn.functional as F
 
 
 def log_sum_exp(x):
-    """ numerically stable log_sum_exp implementation that prevents overflow """
-    # TF ordering
+    """Numerically stable log_sum_exp implementation that prevents overflow."""
     axis = len(x.size()) - 1
     m, _ = torch.max(x, dim=axis)
     m2, _ = torch.max(x, dim=axis, keepdim=True)
@@ -15,6 +18,17 @@ def log_sum_exp(x):
 # It is adapted from https://github.com/r9y9/wavenet_vocoder/blob/master/wavenet_vocoder/mixture.py
 def discretized_mix_logistic_loss(y_hat, y, num_classes=65536,
                                   log_scale_min=None, reduce=True):
+    """
+    Compute the loss for a discretized mixture of logistics, as used in WaveNet vocoder.
+    Args:
+        y_hat (Tensor): Predicted parameters (B x 3*num_mixtures x T).
+        y (Tensor): Target waveform (B x 1 x T).
+        num_classes (int): Number of quantization levels.
+        log_scale_min (float): Minimum log scale value.
+        reduce (bool): Whether to average the loss.
+    Returns:
+        Tensor: Loss value.
+    """
     if log_scale_min is None:
         log_scale_min = float(np.log(1e-14))
     y_hat = y_hat.permute(0,2,1)
@@ -41,11 +55,9 @@ def discretized_mix_logistic_loss(y_hat, y, num_classes=65536,
     cdf_min = torch.sigmoid(min_in)
 
     # log probability for edge case of 0 (before scaling)
-    # equivalent: torch.log(F.sigmoid(plus_in))
     log_cdf_plus = plus_in - F.softplus(plus_in)
 
     # log probability for edge case of 255 (before scaling)
-    # equivalent: (1 - F.sigmoid(min_in)).log()
     log_one_minus_cdf_min = -F.softplus(min_in)
 
     # probability for all other cases
@@ -53,7 +65,6 @@ def discretized_mix_logistic_loss(y_hat, y, num_classes=65536,
 
     mid_in = inv_stdv * centered_y
     # log probability in the center of the bin, to be used in extreme cases
-    # (not actually used in our code)
     log_pdf_mid = mid_in - log_scales - 2. * F.softplus(mid_in)
 
     # tf equivalent
@@ -86,7 +97,7 @@ def discretized_mix_logistic_loss(y_hat, y, num_classes=65536,
 
 def sample_from_discretized_mix_logistic(y, log_scale_min=None):
     """
-    Sample from discretized mixture of logistic distributions
+    Sample from discretized mixture of logistic distributions.
     Args:
         y (Tensor): B x C x T
         log_scale_min (float): Log scale minimum value
@@ -124,7 +135,7 @@ def sample_from_discretized_mix_logistic(y, log_scale_min=None):
 
 
 def to_one_hot(tensor, n, fill_with=1.):
-    # we perform one hot encore with respect to the last axis
+    """One-hot encode a tensor along the last axis."""
     one_hot = torch.FloatTensor(tensor.size() + (n,)).zero_()
     if tensor.is_cuda:
         one_hot = one_hot.cuda()

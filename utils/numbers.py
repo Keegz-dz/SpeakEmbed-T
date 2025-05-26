@@ -1,6 +1,11 @@
+"""
+Number normalization utilities for text-to-speech preprocessing.
+
+Adapted from the text normalization routines in the Tacotron project by Keith Ito and contributors.
+"""
+
 import re
 import inflect
-
 
 _inflect = inflect.engine()
 _comma_number_re = re.compile(r"([0-9][0-9\,]+[0-9])")
@@ -12,14 +17,17 @@ _number_re = re.compile(r"[0-9]+")
 
 
 def _remove_commas(m):
+    """Remove commas from numbers."""
     return m.group(1).replace(",", "")
 
 
 def _expand_decimal_point(m):
+    """Expand decimal point to 'point' in numbers."""
     return m.group(1).replace(".", " point ")
 
 
 def _expand_dollars(m):
+    """Expand dollar amounts to words."""
     match = m.group(1)
     parts = match.split(".")
     if len(parts) > 2:
@@ -41,10 +49,12 @@ def _expand_dollars(m):
 
 
 def _expand_ordinal(m):
+    """Expand ordinal numbers to words."""
     return _inflect.number_to_words(m.group(0))
 
 
 def _expand_number(m):
+    """Expand numbers to words, with special handling for years."""
     num = int(m.group(0))
     if num > 1000 and num < 3000:
         if num == 2000:
@@ -60,6 +70,13 @@ def _expand_number(m):
 
 
 def normalize_numbers(text):
+    """
+    Normalize numbers, ordinals, and currency in the input text to their spoken forms.
+    Args:
+        text (str): Input text.
+    Returns:
+        str: Normalized text.
+    """
     text = re.sub(_comma_number_re, _remove_commas, text)
     text = re.sub(_pounds_re, r"\1 pounds", text)
     text = re.sub(_dollars_re, _expand_dollars, text)
