@@ -30,7 +30,7 @@ AUTO_TEXT_OPTIONS = {
 
 class VoiceCloningApp:
     """
-    Main application class for MOTIVE Studio - a voice cloning application
+    Main application class for SpeakerEmbed-T Studio - a voice cloning application
     that allows users to clone voices using neural speech synthesis.
     """
 
@@ -43,7 +43,7 @@ class VoiceCloningApp:
             initial_sidebar_state="expanded",
         )
 
-        st.title("MOTIVE Studio")
+        st.title("SpeakerEmbed-T Studio")
 
         # Initialize session state variables for persistence between reruns
         self._initialize_session_state()
@@ -110,7 +110,7 @@ class VoiceCloningApp:
 
             # App version footer
             st.markdown("---")
-            st.caption("MOTIVE Studio v2.0")
+            st.caption("SpeakerEmbed-T Studio v2.0")
 
     def _setup_tabs(self) -> None:
         """Set up the main tabbed interface with input and output sections."""
