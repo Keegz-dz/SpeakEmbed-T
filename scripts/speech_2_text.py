@@ -3,7 +3,7 @@ import librosa
 import os
 from transformers import WhisperProcessor, WhisperForConditionalGeneration, AutoModelForSeq2SeqLM, AutoTokenizer
 from typing import Optional
-import params as p
+import scripts.params as p
 from data_preprocessing import audio_preprocessing
 
 class SpeechTranslationPipeline:

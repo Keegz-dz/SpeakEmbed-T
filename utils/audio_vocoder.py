@@ -7,7 +7,7 @@ Adapted from open-source TTS projects (e.g., Tacotron, WaveRNN, and others).
 import math
 import numpy as np
 import librosa
-import params as p
+import scripts.params as p
 from scipy.signal import lfilter
 import soundfile as sf
 

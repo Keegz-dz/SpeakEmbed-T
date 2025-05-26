@@ -1,4 +1,4 @@
-from main import Main
+from scripts.main import Main
 import soundfile as sf
 import librosa
 

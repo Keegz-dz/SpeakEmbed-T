@@ -1,4 +1,5 @@
-from params import *
+from scripts.params import model_hidden_size, model_num_layers, model_embedding_size
+from scripts.params import mel_n_channels
 from scipy.interpolate import interp1d
 from sklearn.metrics import roc_curve
 from torch.nn.utils import clip_grad_norm_
@@ -7,37 +8,36 @@ from torch import nn
 import numpy as np
 import torch
 
-
-class SpeechEncoderV2(nn.Module):
+class SpeechEncoder(nn.Module):
     def __init__(self, device, loss_device):
-        super(SpeechEncoderV2, self).__init__()
+        super().__init__()
         self.loss_device = loss_device
+
         # Architecture
-        self.transformer = nn.TransformerEncoder(
-            nn.TransformerEncoderLayer(d_model=mel_n_channels, nhead=8),
-            num_layers=model_num_layers,
-            norm=nn.LayerNorm(mel_n_channels),
-        )
-        self.linear = nn.Linear(in_features=mel_n_channels, out_features=model_embedding_size)
+        self.lstm = nn.LSTM(input_size=mel_n_channels,
+                            hidden_size=model_hidden_size, 
+                            num_layers=model_num_layers, 
+                            batch_first=True).to(device)
+        self.linear = nn.Linear(in_features=model_hidden_size, 
+                                out_features=model_embedding_size).to(device)
         self.relu = torch.nn.ReLU().to(device)
         
-        # TODO: Improvement 1: Improve the initialization of the weights and biases
-
-        self.similarity_weight = nn.Parameter(torch.tensor([10.], device=loss_device))
-        self.similarity_bias = nn.Parameter(torch.tensor([-5.], device=loss_device))
-
+        # Cosine similarity scaling (with fixed initial parameter values)
+        self.similarity_weight = nn.Parameter(torch.tensor([10.])).to(loss_device)
+        self.similarity_bias = nn.Parameter(torch.tensor([-5.])).to(loss_device)
 
         # Loss
         self.loss_fn = nn.CrossEntropyLoss().to(loss_device)
-
+        
     def do_gradient_ops(self):
         # Gradient scale
         self.similarity_weight.grad *= 0.01
         self.similarity_bias.grad *= 0.01
-        
+            
+        # Gradient clipping
         clip_grad_norm_(self.parameters(), 3, norm_type=2)
     
-    def forward(self, utterances):
+    def forward(self, utterances, hidden_init=None):
         """
         Computes the embeddings of a batch of utterance spectrograms.
         
@@ -47,10 +47,12 @@ class SpeechEncoderV2(nn.Module):
         batch_size, hidden_size). Will default to a tensor of zeros if None.
         :return: the embeddings as a tensor of shape (batch_size, embedding_size)
         """
-        # Pass the input through the transformer layers and retrieve all outputs
-        out = self.transformer(utterances.transpose(0, 1)).transpose(0, 1)
-        # We take only the last output
-        embeds_raw = self.relu(self.linear(out[:, -1]))
+        # Pass the input through the LSTM layers and retrieve all outputs, the final hidden state
+        # and the final cell state.
+        out, (hidden, cell) = self.lstm(utterances, hidden_init)
+        
+        # We take only the hidden state of the last layer
+        embeds_raw = self.relu(self.linear(hidden[-1]))
         
         # L2-normalize it
         embeds = embeds_raw / (torch.norm(embeds_raw, dim=1, keepdim=True) + 1e-5)        
@@ -59,12 +61,13 @@ class SpeechEncoderV2(nn.Module):
     
     def similarity_matrix(self, embeds):
         """
-        Computes the similarity matrix of the embeddings.
-        
-        :param embeds: the embeddings as a tensor of shape (batch_size, embedding_size)
-        :return: the similarity matrix as a tensor of shape (batch_size, batch_size)
+        Computes the similarity matrix according the section 2.1 of GE2E.
+
+        :param embeds: the embeddings as a tensor of shape (speakers_per_batch, 
+        utterances_per_speaker, embedding_size)
+        :return: the similarity matrix as a tensor of shape (speakers_per_batch,
+        utterances_per_speaker, speakers_per_batch)
         """
-        embeds = embeds.to(self.loss_device) 
         speakers_per_batch, utterances_per_speaker = embeds.shape[:2]
         
         # Inclusive centroids (1 per speaker). Cloning is needed for reverse differentiation
@@ -90,9 +93,6 @@ class SpeechEncoderV2(nn.Module):
         sim_matrix = sim_matrix * self.similarity_weight + self.similarity_bias
         return sim_matrix
     
-    # TODO: Improvement 2: Find a better way to compute the similarity matrix. The current one is not very efficient.
-    #                      Find or improve the loss function according to the 2025 standards.
-        
     def loss(self, embeds):
         """
         Computes the softmax loss according the section 2.1 of GE2E.

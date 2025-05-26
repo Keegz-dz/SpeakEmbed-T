@@ -11,7 +11,7 @@ import random
 import io
 import base64
 
-from main import Main
+from scripts.main import Main
 
 # ======================
 # Constants and Configuration

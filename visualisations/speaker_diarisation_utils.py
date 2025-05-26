@@ -11,7 +11,7 @@ import sys
 import os
 sys.path.append("temp")
 
-from params import sampling_rate
+from scripts.params import sampling_rate
 
 # Silence Tk deprecation warning
 os.environ['TK_SILENCE_DEPRECATION'] = '1'

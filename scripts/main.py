@@ -5,16 +5,16 @@ import logging
 import numpy as np
 from pathlib import Path
 
-import params as p
+import scripts.params as p
 from temp.audio import preprocess_wav
-from embed import Embed
-from vocoder import Vocoder
+from scripts.embed import Embed
+from scripts.vocoder import Vocoder
 from utils.tacotron import Tacotron
-from synthesizer import Synthesizer
-from speech_encoder import SpeechEncoder
-from speech_encoder_v2_updated import SpeechEncoderV2
+from scripts.synthesizer import Synthesizer
+from scripts.speech_encoder import SpeechEncoder
+from scripts.speech_encoder_v2_updated import SpeechEncoderV2
 from data_preprocessing import audio_preprocessing
-from speech_2_text import SpeechTranslationPipeline
+from scripts.speech_2_text import SpeechTranslationPipeline
 
 
 class Main():

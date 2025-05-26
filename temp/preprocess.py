@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from temp import audio
 from temp import config
-from params import *
+from scripts.params import *
 
 
 _AUDIO_EXTENSIONS = ("wav", "flac", "m4a", "mp3")
@@ -27,7 +27,7 @@ class DatasetLog:
         self._log_params()
 
     def _log_params(self):
-        import params
+        import scripts.params as params
         self.write_line("Parameter values:")
         for param_name in (p for p in dir(params) if not p.startswith("__")):
             value = getattr(params, param_name)

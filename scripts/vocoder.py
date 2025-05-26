@@ -1,5 +1,11 @@
-from fatchord_version import WaveRNN
-import params as p
+"""
+Vocoder interface for waveform generation from mel spectrograms using WaveRNN.
+This script provides a wrapper for loading and running inference with a WaveRNN vocoder model.
+
+Adapted from open-source WaveRNN implementations (e.g., https://github.com/fatchord/WaveRNN, NVIDIA, and others).
+"""
+from scripts.fatchord_version import WaveRNN
+import scripts.params as p
 import torch
 
 class Vocoder():

@@ -68,7 +68,7 @@ class Visualizations:
     def log_params(self):
         if self.disabled:
             return
-        import params
+        import scripts.params as params
         import params_model
         param_string = "<b>Model parameters</b>:<br>"
         for param_name in (p for p in dir(params_model) if not p.startswith("__")):

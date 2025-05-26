@@ -18,11 +18,11 @@ from pathlib import Path
 from typing import Union, List
 
 # Import necessary modules
-from speech_encoder_v2 import SpeechEncoderV2
-from params import *
+from scripts.speech_encoder_v2 import SpeechEncoderV2
+from scripts.params import *
 from utils import *
 from visualisations import *
-from embed import Embed
+from scripts.embed import Embed
 from data_preprocessing import audio_preprocessing
 from speaker_diarisation_utils import interactive_diarization
 

@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from utils.distribution import sample_from_discretized_mix_logistic
 from utils.display import *
 from utils.audio_vocoder import *
-import params as p
+import scripts.params as p
 
 class ResBlock(nn.Module):
     def __init__(self, dims):

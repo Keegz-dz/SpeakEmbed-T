@@ -1,4 +1,4 @@
-from params import *
+from scripts.params import *
 from scipy.interpolate import interp1d
 from sklearn.metrics import roc_curve
 from torch.nn.utils import clip_grad_norm_

@@ -1,13 +1,19 @@
+"""
+Synthesizer interface for generating mel spectrograms from text using Tacotron.
+This script provides a wrapper for loading and running inference with a Tacotron-based TTS model.
+
+Adapted from open-source Tacotron implementations (e.g., https://github.com/keithito/tacotron, NVIDIA, and others).
+"""
 import torch
-import params
+import scripts.params as params
 from utils.tacotron import Tacotron
 from utils.symbols import symbols
 from pathlib import Path
 from typing import Union, List
 import numpy as np
 import librosa
-from speech_encoder_v2 import SpeechEncoderV2
-from embed import Embed
+from scripts.speech_encoder_v2 import SpeechEncoderV2
+from scripts.embed import Embed
 from utils import text_to_sequence
 import utils.audio_synthesizer as audio_synthesizer
 
