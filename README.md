@@ -146,6 +146,8 @@ Our approach bridges the gap between foundational LSTM-based systems and modern 
     ```bash
     python visualisations/speaker_diarisation.py
     ```
+    ![Project Overview](assets/demo.png)
+
 - **Follow the prompts:**
     - Provide an audio file and mark reference segments for each speaker.
     - The script computes embeddings and visualises speaker turns over time.
