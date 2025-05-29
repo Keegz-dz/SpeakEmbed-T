@@ -15,6 +15,11 @@ This repository provides a full pipeline: from data preprocessing and model trai
 This project involves deepfake voice synthesis technology. To mitigate risks of misuse, we have only provided pretrained encoder weights up to step 73,000. Some files and model checkpoints may not be included for ethical and security reasons. Use this repository responsibly and in accordance with applicable laws and ethical guidelines.
 ```
 
+> **Repository Move Notice**
+>
+> This repository hosts the current, active development of the project and captures all the latest updates. It was migrated from a private repository to streamline organization and improve long-term maintainability.
+
+
 
 ## File & Data Requirements
 
