@@ -1,5 +1,4 @@
 import torch
-import librosa
 import warnings
 import logging
 import numpy as np
@@ -9,11 +8,9 @@ import scripts.params as p
 from temp.audio import preprocess_wav
 from scripts.embed import Embed
 from scripts.vocoder import Vocoder
-from utils.tacotron import Tacotron
 from scripts.synthesizer import Synthesizer
 from scripts.speech_encoder import SpeechEncoder
 from scripts.speech_encoder_v2_updated import SpeechEncoderV2
-from data_preprocessing import audio_preprocessing
 from scripts.speech_2_text import SpeechTranslationPipeline
 
 

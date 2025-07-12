@@ -1,8 +1,5 @@
 import torch
-import librosa
-import os
-from transformers import WhisperProcessor, WhisperForConditionalGeneration, AutoModelForSeq2SeqLM, AutoTokenizer
-from typing import Optional
+from transformers import WhisperProcessor, WhisperForConditionalGeneration
 import scripts.params as p
 from data_preprocessing import audio_preprocessing
 
@@ -44,8 +41,6 @@ class SpeechTranslationPipeline:
 # Example usage
 if __name__ == "__main__":
     
-    import torchaudio
-    from temp import audio
     # wav, sample_rate = torchaudio.load(r"C:\Users\anike\Downloads\harvar.flac")
     wav= audio_preprocessing.preprocess_wav(r"C:\Users\anike\Downloads\harvar.flac")
     pipeline = SpeechTranslationPipeline()

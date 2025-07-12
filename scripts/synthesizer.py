@@ -9,11 +9,8 @@ import scripts.params as params
 from utils.tacotron import Tacotron
 from utils.symbols import symbols
 from pathlib import Path
-from typing import Union, List
+from typing import List
 import numpy as np
-import librosa
-from scripts.speech_encoder_v2 import SpeechEncoderV2
-from scripts.embed import Embed
 from utils.text import text_to_sequence
 import utils.audio_synthesizer as audio_synthesizer
 

@@ -10,12 +10,8 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import torch
-import librosa
 import torchaudio
-import numpy as np
-import matplotlib
-from pathlib import Path
-from typing import Union, List, Tuple
+from typing import List, Tuple
 
 # Import necessary modules
 from scripts.speech_encoder_v2 import SpeechEncoderV2

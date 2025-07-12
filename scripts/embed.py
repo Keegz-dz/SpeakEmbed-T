@@ -1,6 +1,6 @@
 import numpy as np
 from temp import *
-from typing import Union, List
+from typing import List
 import torch
 from data_preprocessing import audio_preprocessing
 import scripts.params as p

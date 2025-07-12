@@ -7,13 +7,10 @@ Adapted from the original Tacotron and Tacotron 2 implementations by NVIDIA, Kei
 - https://github.com/keithito/tacotron
 - https://github.com/NVIDIA/tacotron2
 """
-import os
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from pathlib import Path
-from typing import Union
 
 
 class HighwayNetwork(nn.Module):

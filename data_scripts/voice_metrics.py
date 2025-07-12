@@ -1,7 +1,5 @@
 import numpy as np
 import librosa
-from scipy.stats import kurtosis, skew
-import scipy.signal as signal
 
 def calculate_voice_metrics(audio_data, sr):
     """
