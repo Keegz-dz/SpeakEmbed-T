@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import sys
 sys.path.append('.')
 from data_preprocessing import *
+from audio_preprocessing import *
 
 # =============================================================================
 # CONSTANTS
