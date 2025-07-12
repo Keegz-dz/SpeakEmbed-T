@@ -1,4 +1,4 @@
-from scripts.params import *
+import scripts.params as p
 from scipy.interpolate import interp1d
 from sklearn.metrics import roc_curve
 from torch.nn.utils import clip_grad_norm_
@@ -46,7 +46,7 @@ class SpeechEncoderV2(nn.Module):
         # Positional encoding: Added to input to preserve temporal information
         # This is a learnable parameter (rather than fixed sinusoidal encoding)
         # Shape: [1, 1, mel_n_channels]
-        self.pos_encoder = nn.Parameter(torch.randn(1, 1, mel_n_channels))
+        self.pos_encoder = nn.Parameter(torch.randn(1, 1, p.mel_n_channels))
         
         # Transformer encoder: Processes the sequence using self-attention
         # - d_model: Dimension of input features (mel_n_channels)
@@ -54,14 +54,14 @@ class SpeechEncoderV2(nn.Module):
         # - num_layers: Number of transformer layers (from params)
         # - norm: Layer normalization applied after transformer
         self.transformer = nn.TransformerEncoder(
-            nn.TransformerEncoderLayer(d_model=mel_n_channels, nhead=8),
-            num_layers=model_num_layers,
-            norm=nn.LayerNorm(mel_n_channels),
+            nn.TransformerEncoderLayer(d_model=p.mel_n_channels, nhead=8),
+            num_layers=p.model_num_layers,
+            norm=nn.LayerNorm(p.mel_n_channels),
         )
         
         # Projection layer: Maps transformer output to embedding space
         # Reduces dimensionality from mel_n_channels to model_embedding_size
-        self.linear = nn.Linear(in_features=mel_n_channels, out_features=model_embedding_size)
+        self.linear = nn.Linear(in_features=p.mel_n_channels, out_features=p.model_embedding_size)
         
         # Activation function: Adds non-linearity to the embedding projection
         self.relu = torch.nn.ReLU().to(device)

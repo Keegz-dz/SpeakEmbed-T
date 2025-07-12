@@ -14,7 +14,7 @@ import numpy as np
 import librosa
 from scripts.speech_encoder_v2 import SpeechEncoderV2
 from scripts.embed import Embed
-from utils import text_to_sequence
+from utils.text import text_to_sequence
 import utils.audio_synthesizer as audio_synthesizer
 
 class Synthesizer:

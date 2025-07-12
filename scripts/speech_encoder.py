@@ -1,5 +1,4 @@
-from scripts.params import model_hidden_size, model_num_layers, model_embedding_size
-from scripts.params import mel_n_channels
+import scripts.params as p
 from scipy.interpolate import interp1d
 from sklearn.metrics import roc_curve
 from torch.nn.utils import clip_grad_norm_
@@ -14,12 +13,12 @@ class SpeechEncoder(nn.Module):
         self.loss_device = loss_device
 
         # Architecture
-        self.lstm = nn.LSTM(input_size=mel_n_channels,
-                            hidden_size=model_hidden_size, 
-                            num_layers=model_num_layers, 
+        self.lstm = nn.LSTM(input_size=p.mel_n_channels,
+                            hidden_size=p.model_hidden_size, 
+                            num_layers=p.model_num_layers, 
                             batch_first=True).to(device)
-        self.linear = nn.Linear(in_features=model_hidden_size, 
-                                out_features=model_embedding_size).to(device)
+        self.linear = nn.Linear(in_features=p.model_hidden_size, 
+                                out_features=p.model_embedding_size).to(device)
         self.relu = torch.nn.ReLU().to(device)
         
         # Cosine similarity scaling (with fixed initial parameter values)

@@ -3,6 +3,7 @@ from temp import *
 from typing import Union, List
 import torch
 from data_preprocessing import audio_preprocessing
+import scripts.params as p
 
 # Modified work based on original code by Corentin Jemine (https://github.com/CorentinJ/Real-Time-Voice-Cloning)
 # The following code is licensed under the MIT License
@@ -53,7 +54,7 @@ class Embed:
         embed = self.encoder.forward(frames)
         return embed
 
-    def compute_partial_slices(self, n_samples, partial_utterance_n_frames=partials_n_frames,
+    def compute_partial_slices(self, n_samples, partial_utterance_n_frames=p.partials_n_frames,
                               min_pad_coverage=0.75, overlap=0.5):
         """
         Determine how to divide an audio signal into overlapping segments for processing.
@@ -80,7 +81,7 @@ class Embed:
         assert 0 < min_pad_coverage <= 1, "Minimum pad coverage must be between 0 and 1"
 
         # Calculate conversion factors between samples and frames
-        samples_per_frame = int((sampling_rate * mel_window_step / 1000))
+        samples_per_frame = int((p.sampling_rate * p.mel_window_step / 1000))
         n_frames = int(np.ceil((n_samples + 1) / samples_per_frame))
         
         # Calculate how many frames to advance for each segment (considering overlap)

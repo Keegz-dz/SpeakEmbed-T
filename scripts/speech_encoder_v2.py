@@ -1,4 +1,4 @@
-from scripts.params import *
+import scripts.params as p
 from scipy.interpolate import interp1d
 from sklearn.metrics import roc_curve
 from torch.nn.utils import clip_grad_norm_
@@ -14,11 +14,11 @@ class SpeechEncoderV2(nn.Module):
         self.loss_device = loss_device
         # Architecture
         self.transformer = nn.TransformerEncoder(
-            nn.TransformerEncoderLayer(d_model=mel_n_channels, nhead=8),
-            num_layers=model_num_layers,
-            norm=nn.LayerNorm(mel_n_channels),
+            nn.TransformerEncoderLayer(d_model=p.mel_n_channels, nhead=8),
+            num_layers=p.model_num_layers,
+            norm=nn.LayerNorm(p.mel_n_channels),
         )
-        self.linear = nn.Linear(in_features=mel_n_channels, out_features=model_embedding_size)
+        self.linear = nn.Linear(in_features=p.mel_n_channels, out_features=p.model_embedding_size)
         self.relu = torch.nn.ReLU().to(device)
         
         # TODO: Improvement 1: Improve the initialization of the weights and biases
