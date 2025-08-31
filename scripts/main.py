@@ -11,7 +11,6 @@ from scripts.vocoder import Vocoder
 from scripts.synthesizer import Synthesizer
 from scripts.speech_encoder import SpeechEncoder
 from scripts.speech_encoder_v2_updated import SpeechEncoderV2
-from scripts.speech_2_text import SpeechTranslationPipeline
 
 
 class Main():
@@ -227,8 +226,13 @@ class Main():
                 self.text = sentences
             else:
                 self.logger.info("Transcribing audio to get text for synthesis")
-                stt_model = SpeechTranslationPipeline()
-                self.text = stt_model.transcribe_audio(self.wav).split("\n")
+                try:
+                    from scripts.speech_2_text import SpeechTranslationPipeline
+                    stt_model = SpeechTranslationPipeline()
+                    self.text = stt_model.transcribe_audio(self.wav).split("\n")
+                except Exception as stt_import_error:
+                    self.logger.warning(f"STT unavailable ({stt_import_error}). Using placeholder text.")
+                    self.text = ["Speech-to-text model unavailable on this system."]
                 
             # Filter empty entries
             self.text = [t.strip() for t in self.text if t and t.strip()]

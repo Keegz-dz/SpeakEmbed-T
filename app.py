@@ -1,4 +1,7 @@
-import streamlit as st
+try:
+    import streamlit as st
+except Exception as e:
+    raise RuntimeError("Streamlit is required to run the app. Install streamlit.") from e
 import librosa
 import librosa.display
 import soundfile as sf

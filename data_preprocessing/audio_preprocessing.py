@@ -1,7 +1,10 @@
 import numpy as np
 import librosa
 import torch
-import webrtcvad
+try:
+    import webrtcvad  # Optional; used for VAD-based silence trimming
+except Exception:
+    webrtcvad = None
 import struct
 from scipy.ndimage import binary_dilation
 import os
@@ -95,6 +98,10 @@ def trim_long_silences(wav: np.ndarray, sample_rate: int = TARGET_SAMPLE_RATE) -
     Returns:
         np.ndarray: Audio with long silences removed, preserving short pauses
     """
+    # If WebRTC VAD is not installed, skip silence trimming and return input unchanged
+    if webrtcvad is None:
+        return wav
+
     # Modified work based on original code using Resemblyzer (https://github.com/resemble-ai/Resemblyzer)
     # The following code is licensed under the MIT License
     

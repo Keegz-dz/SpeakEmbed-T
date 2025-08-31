@@ -5,9 +5,11 @@ Adapted from the text normalization routines in the Tacotron project by Keith It
 """
 
 import re
-import inflect
-
-_inflect = inflect.engine()
+try:
+    import inflect
+    _inflect = inflect.engine()
+except Exception:
+    _inflect = None
 _comma_number_re = re.compile(r"([0-9][0-9\,]+[0-9])")
 _decimal_number_re = re.compile(r"([0-9]+\.[0-9]+)")
 _pounds_re = re.compile(r"£([0-9\,]*[0-9]+)")
@@ -50,12 +52,16 @@ def _expand_dollars(m):
 
 def _expand_ordinal(m):
     """Expand ordinal numbers to words."""
+    if _inflect is None:
+        return m.group(0)
     return _inflect.number_to_words(m.group(0))
 
 
 def _expand_number(m):
     """Expand numbers to words, with special handling for years."""
     num = int(m.group(0))
+    if _inflect is None:
+        return str(num)
     if num > 1000 and num < 3000:
         if num == 2000:
             return "two thousand"

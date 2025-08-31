@@ -4,8 +4,14 @@ from datetime import datetime
 from time import perf_counter as timer
 
 import numpy as np
-import umap
-import visdom
+try:
+    import umap
+except Exception:
+    umap = None
+try:
+    import visdom
+except Exception:
+    visdom = None
 
 from data_processor import SpeakerVerificationDataset
 
@@ -38,7 +44,7 @@ class Visualizations:
         print("Updating the visualizations every %d steps." % update_every)
 
         # If visdom is disabled TODO: use a better paradigm for that
-        self.disabled = disabled
+        self.disabled = disabled or (visdom is None)
         if self.disabled:
             return
 
@@ -52,9 +58,8 @@ class Visualizations:
         # Connect to visdom and open the corresponding window in the browser
         try:
             self.vis = visdom.Visdom(server, env=self.env_name, raise_exceptions=True)
-        except ConnectionError:
-            raise Exception("No visdom server detected. Run the command \"visdom\" in your CLI to "
-                            "start it.")
+        except Exception:
+            raise Exception("No visdom server detected. Run the command \"visdom\" in your CLI to start it.")
         # webbrowser.open("http://localhost:8097/env/" + self.env_name)
 
         # Create the windows
@@ -165,8 +170,17 @@ class Visualizations:
         ground_truth = np.repeat(np.arange(n_speakers), utterances_per_speaker)
         colors = [colormap[i] for i in ground_truth]
 
-        reducer = umap.UMAP()
-        projected = reducer.fit_transform(embeds)
+        if umap is None:
+            # PCA fallback
+            embeds_centered = embeds - np.mean(embeds, axis=0, keepdims=True)
+            cov = np.cov(embeds_centered, rowvar=False)
+            eigvals, eigvecs = np.linalg.eigh(cov)
+            order = np.argsort(eigvals)[::-1][:2]
+            components = eigvecs[:, order]
+            projected = embeds_centered @ components
+        else:
+            reducer = umap.UMAP()
+            projected = reducer.fit_transform(embeds)
         plt.scatter(projected[:, 0], projected[:, 1], c=colors)
         plt.gca().set_aspect("equal", "datalim")
         plt.title("UMAP projection (step %d)" % step)

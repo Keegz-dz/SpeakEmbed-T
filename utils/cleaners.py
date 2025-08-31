@@ -14,7 +14,11 @@ hyperparameter. Some cleaners are English-specific. You"ll typically want to use
      the symbols in symbols.py to match your data).
 """
 import re
-from unidecode import unidecode
+try:
+    from unidecode import unidecode
+except Exception:
+    def unidecode(x):
+        return x
 from .numbers import normalize_numbers
 
 

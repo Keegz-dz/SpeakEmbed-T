@@ -6,10 +6,13 @@ audio playback. The speaker with the highest similarity score is always displaye
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import numpy as np
+try:
+    import visdom  # optional dependency used in some visualization flows
+except Exception:
+    visdom = None
 import threading
 import sys
 import os
-sys.path.append("temp")
 
 from scripts.params import sampling_rate
 

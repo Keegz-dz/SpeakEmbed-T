@@ -2,7 +2,10 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.animation import FuncAnimation
 from matplotlib import cm
 from time import sleep, perf_counter as timer
-from umap import UMAP
+try:
+    from umap import UMAP
+except Exception:
+    UMAP = None
 from sys import stderr
 import matplotlib.pyplot as plt
 import numpy as np
@@ -93,8 +96,18 @@ def plot_projections(embeds, speakers, ax=None, colors=None, markers=None, legen
         
     # Compute the 2D projections. You could also project to another number of dimensions (e.g. 
     # for a 3D plot) or use a different different dimensionality reduction like PCA or TSNE.
-    reducer = UMAP(**kwargs)
-    projs = reducer.fit_transform(embeds)
+    if UMAP is None:
+        # Fallback: PCA to 2D if UMAP is unavailable
+        X = embeds
+        Xc = X - X.mean(axis=0, keepdims=True)
+        cov = (Xc.T @ Xc) / max(1, Xc.shape[0]-1)
+        vals, vecs = np.linalg.eigh(cov)
+        idx = np.argsort(vals)[::-1][:2]
+        W = vecs[:, idx]
+        projs = Xc @ W
+    else:
+        reducer = UMAP(**kwargs)
+        projs = reducer.fit_transform(embeds)
     
     # Draw the projections
     speakers = np.array(speakers)

@@ -5,10 +5,28 @@ import torch
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-import sys
-sys.path.append('.')
-from . import *
-from .audio_preprocessing import *
+# Support both package import and direct script execution
+try:
+    from .audio_preprocessing import (
+        preprocess_audio,
+        wav_to_mel_spectrogram,
+        TARGET_SAMPLE_RATE,
+    )
+except Exception:
+    try:
+        from data_preprocessing.audio_preprocessing import (
+            preprocess_audio,
+            wav_to_mel_spectrogram,
+            TARGET_SAMPLE_RATE,
+        )
+    except Exception:
+        import os, sys
+        sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+        from data_preprocessing.audio_preprocessing import (
+            preprocess_audio,
+            wav_to_mel_spectrogram,
+            TARGET_SAMPLE_RATE,
+        )
 
 # =============================================================================
 # CONSTANTS

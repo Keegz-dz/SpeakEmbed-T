@@ -8,19 +8,37 @@ while playing the audio in sync with the plot.
 """
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import torch
-import torchaudio
+try:
+    import torchaudio
+except Exception:
+    torchaudio = None
 from typing import List, Tuple
 
-# Import necessary modules
-from scripts.speech_encoder_v2 import SpeechEncoderV2
-from scripts.params import *
-from utils import *
-from visualisations import *
-from scripts.embed import Embed
-from data_preprocessing import audio_preprocessing
-from speaker_diarisation_utils import interactive_diarization
+# Import necessary modules with robust fallbacks for direct execution
+try:
+    from scripts.speech_encoder_v2_updated import SpeechEncoderV2
+    from scripts.params import sampling_rate
+    from utils import *
+    try:
+        import visdom  # optional
+    except Exception:
+        visdom = None
+    from scripts.embed import Embed
+    from data_preprocessing import audio_preprocessing
+    from visualisations.speaker_diarisation_utils import interactive_diarization
+except ModuleNotFoundError:
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+    from scripts.speech_encoder_v2_updated import SpeechEncoderV2
+    from scripts.params import sampling_rate
+    from utils import *
+    try:
+        import visdom  # optional
+    except Exception:
+        visdom = None
+    from scripts.embed import Embed
+    from data_preprocessing import audio_preprocessing
+    from visualisations.speaker_diarisation_utils import interactive_diarization
 
 def prompt_audio_path(default_path: str) -> str:
     print("\n=== Speaker Diarization Tool ===\n")
@@ -76,6 +94,8 @@ def load_audio_file(audio_path: str) -> Tuple[torch.Tensor, int]:
         print(f"Error: Audio file '{audio_path}' not found.")
         sys.exit(1)
     try:
+        if torchaudio is None:
+            raise RuntimeError("torchaudio not installed")
         waveform, sample_rate = torchaudio.load(audio_path)
         print(f"Audio loaded successfully. Sample rate: {sample_rate}Hz, Duration: {waveform.shape[1]/sample_rate:.2f}s")
         return waveform, sample_rate
@@ -120,7 +140,7 @@ def load_speech_encoder(device: torch.device) -> SpeechEncoderV2:
     encoder = SpeechEncoderV2(device, torch.device("cpu"))
     try:
         checkpoints = torch.load(
-            "models/speech_encoder_transformer/encoder(0.096).pt",
+            "models/speech_encoder_transformer_updated/encoder_073500_loss_0.0724.pt",
             map_location=device
         )
         encoder.load_state_dict(checkpoints['model_state'])
